@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tarmac-society"
+version = "1.0.0"
+description = "A domain-agnostic claim-ledger protocol for agent societies: sealed-bid claims, deadlock detection, signed mediator rulings, hash-chained replayable logs."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Edy Cu" }]
+keywords = ["agents", "multi-agent", "negotiation", "ledger", "mediation", "qwen"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pydantic>=2.7",
+    "typer>=0.16",
+    "pynacl>=1.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-timeout>=2.3", "pytest-cov>=5.0", "ruff>=0.6", "mypy>=1.11"]
+live = ["openai>=1.40"]
+release = ["python-semantic-release>=9,<10"]
+
+[project.scripts]
+tarmac = "tarmac_society.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/edycu/tarmac"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tarmac_society = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+timeout = 120
+
+[tool.ruff]
+line-length = 112
+target-version = "py312"
+src = ["src", "tests", "scripts", "examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008: typer.Option/Argument-in-default is the documented Typer idiom.
+# B905/B007/B027: pre-existing stylistic nits, not correctness bugs — tracked, not blocking.
+ignore = ["B008", "B905", "B007", "B027"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501", "E702", "F841"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+exclude = ["build/", "dist/", "\\.venv/"]
+
+[tool.coverage.run]
+source = ["src/tarmac_society"]
+omit = ["*/__pycache__/*"]
+
+[tool.coverage.report]
+skip_empty = true
+
+# ---------------------------------------------------------------------------
+# Automatic semantic versioning, driven by Conventional Commits in THIS repo.
+# This build/ folder is its own isolated git repo (no remote, not the monorepo).
+#   fix:  -> patch   feat: -> minor   feat!/BREAKING CHANGE: -> major
+# Bump locally with:  ./.venv/bin/semantic-release version
+# (config is local-only: it commits + tags in this repo but never pushes.)
+# ---------------------------------------------------------------------------
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["src/tarmac_society/__init__.py:__version__"]
+tag_format = "v{version}"
+commit_message = "chore(release): {version} [skip ci]"
+allow_zero_version = true
+major_on_zero = false
+build_command = ""
+
+[tool.semantic_release.branches.main]
+match = "(main|master)"
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = false

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tarmac icon">
+  <defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#FBBF24"/>
+    </linearGradient>
+    <radialGradient id="tglow" cx=".5" cy=".4" r=".65">
+      <stop offset="0" stop-color="#FBBF24" stop-opacity=".45"/><stop offset="1" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="104" fill="#0A0E14"/>
+  <rect x="16" y="16" width="480" height="480" rx="104" fill="url(#tglow)">
+    <animate attributeName="opacity" values=".45;.95;.45" dur="4.2s" repeatCount="indefinite"/>
+  </rect>
+  <!-- split-flap tile -->
+  <g>
+    <rect x="126" y="116" width="260" height="132" rx="22" fill="url(#tg)"/>
+    <rect x="126" y="264" width="260" height="132" rx="22" fill="#141A24" stroke="url(#tg)" stroke-width="8"/>
+    <!-- flipping flap (top half folds down) -->
+    <g transform="translate(0 256)">
+      <rect x="126" y="-140" width="260" height="132" rx="22" fill="#F4F1E8" opacity="0">
+        <animate attributeName="opacity" values="0;0;.95;0" keyTimes="0;.55;.7;1" dur="3.4s" repeatCount="indefinite"/>
+      </rect>
+      <animateTransform attributeName="transform" type="scale" additive="sum"
+        values="1 1;1 1;1 -0.05;1 1" keyTimes="0;.55;.7;1" dur="3.4s" repeatCount="indefinite"/>
+    </g>
+    <!-- split line -->
+    <rect x="118" y="250" width="276" height="12" rx="6" fill="#0A0E14"/>
+  </g>
+  <!-- plane glyph on the top flap -->
+  <path d="M196 182 L316 182 M256 152 L256 212 M226 168 L286 196 M286 168 L226 196" stroke="#0A0E14" stroke-width="0" />
+  <path d="M256 138 L286 200 L262 192 L256 214 L250 192 L226 200 Z" fill="#0A0E14"/>
+  <!-- runway lights -->
+  <g fill="#34D399">
+    <circle cx="156" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" repeatCount="indefinite"/></circle>
+    <circle cx="206" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".2s" repeatCount="indefinite"/></circle>
+    <circle cx="256" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".4s" repeatCount="indefinite"/></circle>
+    <circle cx="306" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".6s" repeatCount="indefinite"/></circle>
+    <circle cx="356" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".8s" repeatCount="indefinite"/></circle>
+  </g>
+</svg>

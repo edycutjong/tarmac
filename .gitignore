@@ -1,0 +1,28 @@
+# virtualenv
+.venv/
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# run artifacts (fixtures/ run DB is committed on purpose; runs/ is scratch)
+runs/
+
+# OS noise
+.DS_Store
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# coverage
+.coverage
+coverage.xml
+htmlcov/
