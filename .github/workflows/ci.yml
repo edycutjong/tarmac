@@ -139,3 +139,31 @@ jobs:
           echo "  - Stage 2 - Dependency Audit (pip-audit)"
           echo "  - Stage 3 - Build Verification (sdist/wheel + CLI smoke test)"
           echo "  - Stage 4 - Offline Verification (deterministic replay, zero keys)"
+# ── STAGE 6: Semantic Release (main only) ─────────────────
+  release:
+    name: "Stage 6 · Semantic Release"
+    needs: [deploy-gate]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write # push the auto-computed version commit + tag
+    steps:
+      - name: Checkout (full history for commit analysis)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install release tooling
+        run: pip install -e ".[release]"
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Semantic version → bump + tag + push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release version --no-vcs-release

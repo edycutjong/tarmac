@@ -230,3 +230,27 @@ for the dev-setup and pre-PR checklist.
 ## 📄 License
 
 [MIT](LICENSE) © 2026 Edy Cu. Built solo in one day of a multi-project sprint.
+
+## Versioning
+
+This project uses [Semantic Versioning](https://semver.org) with **fully automated** version
+management driven by [Conventional Commits](https://www.conventionalcommits.org) — the version is
+never edited by hand.
+
+| Commit type | Bump | Example |
+|---|---|---|
+| `fix: …` | patch | 1.0.0 → 1.0.1 |
+| `feat: …` | minor | 1.0.0 → 1.1.0 |
+| `feat!: …` or `BREAKING CHANGE:` footer | major | 1.0.0 → 2.0.0 |
+
+[python-semantic-release](https://python-semantic-release.readthedocs.io) keeps the version in sync
+across `pyproject.toml` and `src/tarmac_society/__init__.py`.
+
+- **In CI/CD:** Stage 6 of the pipeline (`.github/workflows/ci.yml`) runs on every push to `main`,
+  computes the next version from the commits since the last tag, then commits + tags it automatically.
+- **Locally:**
+  ```bash
+  pip install -e ".[release]"
+  semantic-release version    # compute + apply the next version and tag
+  ```
+
