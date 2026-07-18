@@ -41,6 +41,20 @@ def test_run_writes_db_then_verify_log_ok(tmp_path):
     assert "overall: OK" in v.stdout
 
 
+def test_run_refuses_existing_db(tmp_path):
+    # Re-running against an existing --db must fail cleanly (one-line error,
+    # non-zero exit, no traceback) instead of crashing on the genesis entry.
+    db = tmp_path / "run.db"
+    first = runner.invoke(app, ["run", "--condition", "society", "--seed", "7", "--db", str(db)])
+    assert first.exit_code == 0 and db.exists()
+    before = db.read_bytes()
+    second = runner.invoke(app, ["run", "--condition", "society", "--seed", "7", "--db", str(db)])
+    assert second.exit_code == 1
+    assert second.exception is None or isinstance(second.exception, SystemExit)
+    assert f"{db} already exists — pass a new --db path or delete the file" in second.output
+    assert db.read_bytes() == before  # the existing run.db is left untouched
+
+
 def test_verify_log_flags_single_planner(tmp_path):
     db = tmp_path / "single.db"
     runner.invoke(app, ["run", "--condition", "single", "--seed", "7", "--db", str(db)])

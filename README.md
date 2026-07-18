@@ -13,10 +13,10 @@
   <br/>
 
   ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?style=flat&logo=python&logoColor=white)
-  ![Tests](https://img.shields.io/badge/tests-326_passed-2ea44f?style=flat)
+  ![Tests](https://img.shields.io/badge/tests-327_passed-2ea44f?style=flat)
   ![Coverage](https://img.shields.io/badge/coverage-99%25-2ea44f?style=flat)
-  [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-2ea44f?style=flat)](https://github.com/edycu/tarmac/actions/workflows/codeql.yml)
-  [![CI](https://github.com/edycu/tarmac/actions/workflows/ci.yml/badge.svg)](https://github.com/edycu/tarmac/actions/workflows/ci.yml)
+  [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-2ea44f?style=flat)](https://github.com/edycutjong/tarmac/actions/workflows/codeql.yml)
+  [![CI](https://github.com/edycutjong/tarmac/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/tarmac/actions/workflows/ci.yml)
 </div>
 
 > **Track 3: Agent Society.** An airline irregular-operations society where the
@@ -70,10 +70,10 @@ swap in the real Qwen agents.
 
 ## ✅ Testing & CI
 
-**326 tests, all green, 99% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
+**327 tests, all green, 99% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
 
 ```
-============================= 326 passed in 4.62s ==============================
+============================= 327 passed in 4.94s ==============================
 ```
 
 They cover the ledger's locking + double-claim rejection, sealed-bid commit→reveal
@@ -102,7 +102,7 @@ stages a frontend project would run:
 | Layer | Tool | Status |
 |---|---|---|
 | Code Quality | ruff + mypy | ✅ |
-| Unit Testing | pytest (99% coverage, 326 tests) | ✅ |
+| Unit Testing | pytest (99% coverage, 327 tests) | ✅ |
 | Offline Verification | `scripts/verify_offline.py` (I1–I5 replay, zero network) | ✅ |
 | Security (SAST) | CodeQL (Python) | ✅ |
 | Security (SCA) | Dependabot (pip + github-actions) + pip-audit | ✅ |
@@ -208,7 +208,7 @@ The one thing offline can't show is a live model's *judgement*, so a real
 
 | Area | State |
 |---|---|
-| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (326 tests) |
+| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (327 tests) |
 | `storm_dfw` fixture + generator + committed `fixtures/storm_dfw_seed7.json` | **Done**, deadlock guaranteed |
 | Offline society (deterministic **policy** agents) | **Done** — the default; no key, byte-stable |
 | Ablation bench (3×10) + `verify_offline` + readiness check | **Done**, table committed |

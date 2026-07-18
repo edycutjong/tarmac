@@ -32,7 +32,7 @@ release = ["python-semantic-release>=9,<10"]
 tarmac = "tarmac_society.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/edycu/tarmac"
+Homepage = "https://github.com/edycutjong/tarmac"
 
 [tool.setuptools.packages.find]
 where = ["src"]

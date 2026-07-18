@@ -67,6 +67,12 @@ def run(
     """Run one condition and print the manifest metrics."""
     sc = _load_scenario(scenario, seed, fixture)
     if db:
+        if db.exists():
+            typer.echo(
+                f"{db} already exists — pass a new --db path or delete the file",
+                err=True,
+            )
+            raise typer.Exit(code=1)
         db.parent.mkdir(parents=True, exist_ok=True)
     db_path = str(db) if db else ":memory:"
     if condition == "single":

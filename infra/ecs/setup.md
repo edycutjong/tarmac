@@ -1,7 +1,9 @@
 # Alibaba Cloud ECS — orchestrator setup
 
 > **Status: documented, not yet provisioned.** The society runs and is fully
-> tested locally (offline) and against live Qwen (`--live`). This is the runbook
+> tested locally (offline); the live Qwen path (`--live`) is wired and
+> wire-tested against the transport, but has never been executed against
+> DashScope. This is the runbook
 > for hosting the live orchestrator on a persistent Alibaba Cloud ECS instance;
 > it has not been stood up for this submission. Nothing else in Tarmac depends on
 > it — the graded path is the offline deterministic run and the committed bench.
@@ -24,10 +26,10 @@ API, not CPU.
 
 ```bash
 sudo apt-get update && sudo apt-get install -y python3.12 python3.12-venv git
-git clone https://github.com/edycu/tarmac.git && cd tarmac/build
+git clone https://github.com/edycutjong/tarmac.git && cd tarmac/build
 python3.12 -m venv .venv
 ./.venv/bin/pip install -e ".[dev,live]"
-./.venv/bin/pytest -q          # 326 green before you trust the box
+./.venv/bin/pytest -q          # 327 green before you trust the box
 ```
 
 ## 3. Secrets (never commit these)
