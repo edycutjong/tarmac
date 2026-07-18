@@ -242,12 +242,38 @@ def test_process_position_yield_withdraws_blocked_claim():
 
 
 # ----------------------------------------------------------------- _sign_and_apply_ruling
-def test_sign_and_apply_ruling_unknown_citation_raises():
+def test_sign_and_apply_ruling_all_unknown_citations_rejected_not_raised():
+    # A live mediator can cite only unknown source ids. That must NOT crash the
+    # run — the ruling is rejected (logged) and no ruling entry is recorded, so
+    # the deadlock falls through to safety finalization.
     soc = _society([StubAgent("a")])
     soc.citation_resolver = lambda cid: None  # every citation is "unknown"
     ruling = Ruling(deadlock_id="d-1", decision="d", rationale="r", citations=["reg-1"])
-    with pytest.raises(ProtocolError):
-        soc._sign_and_apply_ruling(ruling, 1, None)
+    signed = soc._sign_and_apply_ruling(ruling, 1, None)
+    assert signed is None
+    kinds = [e.kind for e in soc.chainlog.entries()]
+    assert "ruling_rejected" in kinds
+    assert "ruling" not in kinds
+
+
+def test_sign_and_apply_ruling_drops_unknown_keeps_valid_citation():
+    # Mix of one valid + one hallucinated citation: the run proceeds citing only
+    # the valid source, and the unknown one is logged as dropped.
+    soc = _society([StubAgent("a")])
+    real = {c for c in ["reg-real"]}
+    soc.citation_resolver = lambda cid: {"sha256": "abc"} if cid in real else None
+    ruling = Ruling(
+        deadlock_id="d-1", decision="d", rationale="r",
+        citations=["reg-real", "reg-hallucinated"],
+    )
+    signed = soc._sign_and_apply_ruling(ruling, 1, None)
+    assert signed is not None
+    assert list(signed.body.citations) == ["reg-real"]
+    assert "reg-real" in signed.citation_hashes
+    assert "reg-hallucinated" not in signed.citation_hashes
+    kinds = [e.kind for e in soc.chainlog.entries()]
+    assert "ruling_citation_dropped" in kinds
+    assert "ruling" in kinds
 
 
 def test_sign_and_apply_ruling_logs_rejected_op():

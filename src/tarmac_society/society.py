@@ -196,16 +196,41 @@ class Society:
 
     def _sign_and_apply_ruling(
         self, ruling: Ruling, round_: int, deadlock: Deadlock | None
-    ) -> SignedRuling:
+    ) -> SignedRuling | None:
         self._ruling_seq += 1
         ruling_id = f"r-{self._ruling_seq:02d}"
         citation_hashes: dict[str, str] = {}
         if self.citation_resolver is not None:
+            # A live mediator model can cite a source id that isn't in the
+            # regulation library (the deterministic FakeQwen never does). Drop
+            # unknown citations rather than aborting the whole society run; if
+            # nothing resolves we reject the ruling and leave the deadlock for
+            # safety finalization, so I3 (recorded rulings cite >= 1 source) holds.
+            valid_citations: list[str] = []
             for cid in ruling.citations:
                 passage = self.citation_resolver(cid)
                 if passage is None:
-                    raise ProtocolError(f"ruling {ruling_id} cites unknown source {cid!r}")
+                    self.chainlog.append(
+                        "ruling_citation_dropped",
+                        {"ruling_id": ruling_id, "citation": str(cid)},
+                        round_,
+                    )
+                    continue
                 citation_hashes[cid] = passage["sha256"]
+                valid_citations.append(cid)
+            if not valid_citations:
+                self.chainlog.append(
+                    "ruling_rejected",
+                    {
+                        "ruling_id": ruling_id,
+                        "reason": "no resolvable citations",
+                        "cited": [str(c) for c in ruling.citations],
+                    },
+                    round_,
+                )
+                return None
+            if valid_citations != list(ruling.citations):
+                ruling = ruling.model_copy(update={"citations": valid_citations})
         unsigned = SignedRuling(
             ruling_id=ruling_id,
             round=round_,

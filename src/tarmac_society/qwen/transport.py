@@ -240,7 +240,11 @@ class LiveQwen(QwenTransport):
                 )
             from openai import OpenAI  # lazy: offline installs never import this
 
-            self._client = OpenAI(api_key=api_key, base_url=BASE_URL)
+            # A society run makes dozens of sequential calls; a per-request
+            # timeout keeps one slow response from hanging the whole run.
+            self._client = OpenAI(
+                api_key=api_key, base_url=BASE_URL, timeout=120.0, max_retries=2
+            )
         return self._client
 
     # ------------------------------------------------------------- plumbing
@@ -253,9 +257,12 @@ class LiveQwen(QwenTransport):
                 {"role": "user", "content": user},
             ],
         }
-        if thinking:
-            # DashScope compatible-mode flag for qwen3.7-max thinking
-            kwargs["extra_body"] = {"enable_thinking": True}
+        # Qwen3 models default to "thinking" mode, which spends thousands of
+        # reasoning tokens per call (~45s+, and it times out on the large
+        # negotiation-state prompts). Only the mediator needs it; role agents
+        # (propose/respond) run with thinking OFF, which is both faster and
+        # sufficient for structured JSON emission.
+        kwargs["extra_body"] = {"enable_thinking": bool(thinking)}
         resp = self.client.chat.completions.create(**kwargs)
         return resp.choices[0].message.content or ""
 

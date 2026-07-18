@@ -1,0 +1,10 @@
+[PASS] chain: chain ok (324 entries, head e261ceab70a8900e...)
+[PASS] I5.replay: replay reproduces the recorded manifest byte-for-byte
+[PASS] I1.capacity: no resource over capacity
+[PASS] I1.exclusivity: no beneficiary double-allocated in a group
+[PASS] I3.rulings_cite_source: all 3 rulings cite >= 1 source
+[PASS] I4.accepted_reveals_match: 29 accepted reveals re-derive their commitment
+[PASS] I4.rejected_reveals_mismatch: 0 rejected reveals genuinely fail to match
+[PASS] I2.crew_duty: zero crew duty violations in the final manifest
+
+overall: OK (324 entries)

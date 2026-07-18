@@ -192,9 +192,10 @@ def test_liveqwen_client_lazily_imports_openai_with_env_key(monkeypatch):
     captured = {}
 
     class _FakeOpenAI:
-        def __init__(self, api_key, base_url):
+        def __init__(self, api_key, base_url, **kwargs):
             captured["api_key"] = api_key
             captured["base_url"] = base_url
+            captured.update(kwargs)
 
     fake_openai = types.ModuleType("openai")
     fake_openai.OpenAI = _FakeOpenAI
@@ -204,7 +205,9 @@ def test_liveqwen_client_lazily_imports_openai_with_env_key(monkeypatch):
     lq = LiveQwen()
     client = lq.client
     assert isinstance(client, _FakeOpenAI)
-    assert captured == {"api_key": "sk-test-env", "base_url": BASE_URL}
+    assert captured["api_key"] == "sk-test-env"
+    assert captured["base_url"] == BASE_URL
+    assert captured["timeout"] == 120.0  # per-request cap so one slow call can't hang a run
     assert lq.client is client  # cached, not re-constructed
 
 
@@ -212,7 +215,7 @@ def test_liveqwen_client_prefers_explicit_key_over_env(monkeypatch):
     captured = {}
 
     class _FakeOpenAI:
-        def __init__(self, api_key, base_url):
+        def __init__(self, api_key, base_url, **kwargs):
             captured["api_key"] = api_key
 
     fake_openai = types.ModuleType("openai")
@@ -226,13 +229,15 @@ def test_liveqwen_client_prefers_explicit_key_over_env(monkeypatch):
 
 
 # ------------------------------------------------------------------- _chat
-def test_liveqwen_chat_without_thinking_omits_extra_body():
+def test_liveqwen_chat_without_thinking_disables_thinking():
     client = _StubClient(chat_responses=["hello"])
     lq = LiveQwen(client=client)
     out = lq._chat("model-x", "sys", "usr", thinking=False)
     assert out == "hello"
     kwargs = client.chat.completions.calls[0]
-    assert "extra_body" not in kwargs
+    # Qwen3 defaults to thinking ON; role calls must explicitly turn it OFF
+    # (otherwise every call spends thousands of reasoning tokens and times out).
+    assert kwargs["extra_body"] == {"enable_thinking": False}
     assert kwargs["model"] == "model-x"
     assert kwargs["temperature"] == TEMPERATURE
     assert kwargs["messages"] == [
