@@ -233,7 +233,7 @@ for the dev-setup and pre-PR checklist.
 
 [MIT](LICENSE) © 2026 Edy Cu. Built solo in one day of a multi-project sprint.
 
-## Versioning
+## 🏷️ Versioning
 
 This project uses [Semantic Versioning](https://semver.org) with **fully automated** version
 management driven by [Conventional Commits](https://www.conventionalcommits.org) — the version is
