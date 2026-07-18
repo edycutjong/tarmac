@@ -166,4 +166,4 @@ jobs:
       - name: Semantic version → bump + tag + push
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release version --no-vcs-release
+        run: semantic-release version
