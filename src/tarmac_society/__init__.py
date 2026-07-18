@@ -49,7 +49,7 @@ from .society import CitationResolver, ProtocolError, RunResult, Society
 from .storage import IntegrityViolation, SQLiteStorage, Storage
 from .verify import VerifyReport, replay_manifest, verify_log
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 __all__ = [
     "__version__",

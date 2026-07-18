@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tarmac-society"
-version = "1.1.0"
+version = "1.1.1"
 description = "A domain-agnostic claim-ledger protocol for agent societies: sealed-bid claims, deadlock detection, signed mediator rulings, hash-chained replayable logs."
 readme = "README.md"
 requires-python = ">=3.12"
