@@ -39,7 +39,7 @@ def main() -> int:
 
     readme = (ROOT / "README.md").read_text() if (ROOT / "README.md").exists() else ""
     check("README embeds the hero image", "docs/readme-hero.svg" in readme)
-    check("README cites the test count", "327" in readme, "expected exact test count")
+    check("README cites the test count", "329" in readme, "expected exact test count")
     check("MIT license visible", "MIT" in (ROOT / "LICENSE").read_text())
 
     from tarmac_society import verify_log

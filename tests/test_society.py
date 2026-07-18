@@ -298,6 +298,36 @@ def test_finalize_unquiesced_mediator_voids_leftover_contests_and_blocked():
     assert soc.ledger.claim(blocked.id).status == ClaimStatus.VOIDED  # force-voided
 
 
+def test_finalize_unquiesced_mediator_force_voids_contest_opened_during_fiat():
+    """A contest that appears only AFTER the fiat-deadlock snapshot (here:
+    opened by the mediator's own fiat call) is outside the ruling's deadlock,
+    so _settle_contests skips it — the safety sweep must still force-void it
+    and refund the stake so no contest survives finalization."""
+    ctx: dict = {}
+
+    def fiat_fn(view):
+        pos = Position(
+            agent="b", stance="block", target_claim=ctx["held"].id,
+            argument="x", citations=["c"],
+        )
+        ctx["late"] = ctx["soc"].bank.open_contest(pos, 1)
+        return Ruling(deadlock_id="d-fiat", decision="no-op", rationale="r", citations=["c"])
+
+    med = StubMediator(fiat_fn=fiat_fn)
+    soc = _society([StubAgent("a"), StubAgent("b")], mediator=med, max_rounds=1)
+    ctx["soc"] = soc
+    ctx["held"] = soc.ledger.submit_plain(
+        ClaimProposal(agent="a", resource="seat:A", qty=1, beneficiaries=["p1"], basis="x"), 1
+    )
+
+    soc._finalize_unquiesced(1)
+
+    assert ctx["late"] is not None  # the late contest really opened
+    assert soc.bank.open_contests() == []  # swept by the post-fiat force-void
+    # voided (stake refunded), not settled as won/lost
+    assert soc.bank.spend_summary()["b"]["burned"] == 0
+
+
 def test_finalize_unquiesced_no_mediator_ignores_phantom_contest_target():
     soc = _society([StubAgent("a")], mediator=None, max_rounds=1)
     pos = Position(agent="a", stance="block", target_claim="c-999", argument="x", citations=["c"])

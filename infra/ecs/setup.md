@@ -29,7 +29,7 @@ sudo apt-get update && sudo apt-get install -y python3.12 python3.12-venv git
 git clone https://github.com/edycutjong/tarmac.git && cd tarmac/build
 python3.12 -m venv .venv
 ./.venv/bin/pip install -e ".[dev,live]"
-./.venv/bin/pytest -q          # 327 green before you trust the box
+./.venv/bin/pytest -q          # 329 green before you trust the box
 ```
 
 ## 3. Secrets (never commit these)

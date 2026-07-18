@@ -10,14 +10,14 @@
   [![Pitch Deck](https://img.shields.io/badge/%F0%9F%93%BD%EF%B8%8F_Pitch-Deck-f59e0b?style=for-the-badge)](https://tarmac.edycu.dev/pitch/)
   [![Demo Path](https://img.shields.io/badge/%F0%9F%95%B9%EF%B8%8F_Judge-Demo_Path-F59E0B?style=for-the-badge)](DEMO.md)
   [![QwenCloud Hackathon](https://img.shields.io/badge/QwenCloud-Track_3_Agent_Society-8b5cf6?style=for-the-badge)](https://qwencloud-hackathon.devpost.com/)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-06b6d4?style=for-the-badge)](LICENSE)
 
   <br/>
 
   ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?style=flat&logo=python&logoColor=white)
-  ![Tests](https://img.shields.io/badge/tests-327_passed-2ea44f?style=flat)
-  ![Coverage](https://img.shields.io/badge/coverage-99%25-2ea44f?style=flat)
+  ![Tests](https://img.shields.io/badge/tests-329_passed-2ea44f?style=flat)
+  ![Coverage](https://img.shields.io/badge/coverage-100%25-2ea44f?style=flat)
   [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-2ea44f?style=flat)](https://github.com/edycutjong/tarmac/actions/workflows/codeql.yml)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-06b6d4)](LICENSE)
   [![CI](https://github.com/edycutjong/tarmac/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/tarmac/actions/workflows/ci.yml)
 </div>
 
@@ -59,11 +59,11 @@ on the last compliant nonstop while stranding the courier; the society doesn't.
 ```bash
 python3.12 -m venv .venv && ./.venv/bin/pip install -e ".[dev]"
 
-./.venv/bin/tarmac run --scenario storm_dfw --seed 7   # watch the society negotiate
-./.venv/bin/tarmac bench                                # the ablation table
-./.venv/bin/tarmac verify-log runs/…/run.db             # re-check invariants I1–I5
-./.venv/bin/python scripts/verify_offline.py            # zero-key judge path (exit 0)
-./.venv/bin/python examples/meeting_rooms.py            # the protocol, non-airline, 20 lines
+./.venv/bin/tarmac run --scenario storm_dfw --seed 7  # watch the society negotiate
+./.venv/bin/tarmac bench                              # the ablation table
+./.venv/bin/tarmac verify-log runs/…/run.db           # re-check invariants I1–I5
+./.venv/bin/python scripts/verify_offline.py          # zero-key judge path (exit 0)
+./.venv/bin/python examples/meeting_rooms.py          # the protocol, non-airline, 20 lines
 ```
 
 Everything above runs against **deterministic policy agents** — no network, no
@@ -72,10 +72,10 @@ swap in the real Qwen agents.
 
 ## ✅ Testing & CI
 
-**327 tests, all green, 99% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
+**329 tests, all green, 100% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
 
 ```
-============================= 327 passed in 4.94s ==============================
+============================= 329 passed in 4.94s ==============================
 ```
 
 They cover the ledger's locking + double-claim rejection, sealed-bid commit→reveal
@@ -104,7 +104,7 @@ stages a frontend project would run:
 | Layer | Tool | Status |
 |---|---|---|
 | Code Quality | ruff + mypy | ✅ |
-| Unit Testing | pytest (99% coverage, 327 tests) | ✅ |
+| Unit Testing | pytest (100% coverage, 329 tests) | ✅ |
 | Offline Verification | `scripts/verify_offline.py` (I1–I5 replay, zero network) | ✅ |
 | Security (SAST) | CodeQL (Python) | ✅ |
 | Security (SCA) | Dependabot (pip + github-actions) + pip-audit | ✅ |
@@ -210,7 +210,7 @@ The one thing offline can't show is a live model's *judgement*, so a real
 
 | Area | State |
 |---|---|
-| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (327 tests) |
+| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (329 tests) |
 | `storm_dfw` fixture + generator + committed `fixtures/storm_dfw_seed7.json` | **Done**, deadlock guaranteed |
 | Offline society (deterministic **policy** agents) | **Done** — the default; no key, byte-stable |
 | Ablation bench (3×10) + `verify_offline` + readiness check | **Done**, table committed |

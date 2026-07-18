@@ -291,6 +291,30 @@ def test_liveqwen_structured_exhausts_retries_returns_none():
     assert len(client.chat.completions.calls) == 2
 
 
+def test_liveqwen_structured_retries_after_non_validation_parse_error():
+    """A parse failure that is NOT a pydantic ValidationError (e.g. a decoder
+    raising ValueError) takes the malformed-JSON branch: the reject-retry
+    prompt says 'not parseable JSON' and carries the decoder's error text."""
+    state = {"calls": 0}
+
+    class _FlakyDecodeRuling(Ruling):
+        @classmethod
+        def model_validate_json(cls, json_data, **kwargs):
+            state["calls"] += 1
+            if state["calls"] == 1:
+                raise ValueError("unbalanced braces")
+            return super().model_validate_json(json_data, **kwargs)
+
+    client = _StubClient(chat_responses=["{oops", _ruling_json(deadlock_id="d-mal")])
+    lq = LiveQwen(client=client)
+    out = lq._structured("m", "sys", "usr", _FlakyDecodeRuling)
+    assert out.deadlock_id == "d-mal"
+    assert len(client.chat.completions.calls) == 2
+    retry_prompt = client.chat.completions.calls[1]["messages"][1]["content"]
+    assert "not parseable JSON" in retry_prompt
+    assert "unbalanced braces" in retry_prompt
+
+
 # -------------------------------------------------------- propose / respond
 def test_liveqwen_propose_filters_claims_to_own_agent():
     payload = json.dumps({

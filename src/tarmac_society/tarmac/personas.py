@@ -695,7 +695,11 @@ class DutyManagerPolicy:
             if agent in winners:
                 continue
             if contest["target_claim"] in touched_full:
-                winners.add(agent)
+                # Unreachable today: touched_full stays empty because
+                # _rule_seats only ever issues per-beneficiary revokes, never
+                # a full revoke/void. Kept as a guard for future full-revoke
+                # ops so their contesters are credited as winners.
+                winners.add(agent)  # pragma: no cover
             else:
                 losers.add(agent)
 
