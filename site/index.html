@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tarmac — five agents fight over nine seats so the right people fly</title>
+<meta name="description" content="An airline irregular-ops agent society: sealed-bid seat claims, Ed25519-signed mediator rulings, a row-locked seat ledger — and an ablation bench proving it beats a single planner (3 protected passengers stranded vs 17)." />
+<link rel="canonical" href="https://tarmac.edycu.dev/" />
+<meta name="theme-color" content="#0A0E14" />
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Tarmac" />
+<meta property="og:url" content="https://tarmac.edycu.dev/" />
+<meta property="og:title" content="Tarmac — five agents fight over nine seats so the right people fly" />
+<meta property="og:description" content="Sealed-bid seat claims, Ed25519-signed rulings, a row-locked ledger. The ablation: single planner strands 17 protected passengers, the society strands 3. Strip the mediator and it's 96." />
+<meta property="og:image" content="https://tarmac.edycu.dev/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Tarmac — five agents fight over nine seats so the right people fly" />
+<meta name="twitter:description" content="Agent society for flight-disruption rebooking. 3 protected passengers stranded vs 17 for a single planner. 327 tests, 99% coverage." />
+<meta name="twitter:image" content="https://tarmac.edycu.dev/og-image.png" />
+<!-- Icons -->
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<!-- Fonts: Google CDN as enhancement; stacks below carry the look if it fails -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Work+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ═══ TARMAC — air-traffic data-room ═══ */
+:root{
+  --bg:#0A0E14;
+  --bg-elevated:#141A24;
+  --primary:#FBBF24;        /* amber phosphor */
+  --accent:#34D399;         /* radar green */
+  --text:#F4F1E8;
+  --text-dim:#98A1AE;
+  --err:#F87171;
+  --info:#60A5FA;
+  --border-glass:rgba(244,241,232,.14);
+  --panel-glass:rgba(20,26,36,.72);
+  --glow-primary:rgba(251,191,36,.55);
+  --glow-soft:rgba(251,191,36,.22);
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --r-pill:999px;
+  --t-fast:150ms cubic-bezier(.4,0,.2,1);
+  --t-slow:600ms cubic-bezier(.22,1,.36,1);
+  --font-display:"Space Grotesk","Avenir Next",Futura,"Segoe UI",system-ui,sans-serif;
+  --font-body:"Work Sans","Helvetica Neue",Arial,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --max:1180px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--font-body);font-size:17px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+/* scanline motif — subtle, whole page */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(0deg,rgba(244,241,232,.016) 0 1px,transparent 1px 4px);
+}
+::selection{background:var(--primary);color:var(--bg)}
+img{max-width:100%;display:block}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--font-display);line-height:1.1;letter-spacing:-.02em}
+.mono{font-family:var(--font-mono)}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+section{position:relative;z-index:2}
+
+/* skip link */
+.skip{position:absolute;left:-999px;top:0;background:var(--primary);color:var(--bg);padding:10px 18px;z-index:99;font-weight:600;border-radius:0 0 var(--r-sm) 0}
+.skip:focus{left:0}
+
+/* ── header ─────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,14,20,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border-glass);
+}
+.nav{display:flex;align-items:center;gap:16px;height:64px;max-width:var(--max);margin:0 auto;padding:0 24px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text);font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.01em}
+.brand svg{width:34px;height:34px;border-radius:8px;flex:none}
+.brand .callsign{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);font-weight:400;letter-spacing:.12em;display:none}
+@media(min-width:640px){.brand .callsign{display:inline}}
+.nav-links{display:none;gap:26px;margin-left:auto;align-items:center}
+@media(min-width:820px){.nav-links{display:flex}}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:14.5px;font-weight:500;transition:color var(--t-fast)}
+.nav-links a:hover{color:var(--primary)}
+.nav-cta{margin-left:auto}
+@media(min-width:820px){.nav-cta{margin-left:0}}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:var(--font-display);font-weight:700;font-size:15.5px;letter-spacing:.01em;
+  padding:12px 22px;border-radius:var(--r-sm);transition:transform var(--t-fast),box-shadow var(--t-fast),background var(--t-fast);
+  border:1px solid transparent;cursor:pointer;
+}
+.btn-primary{background:var(--primary);color:#0A0E14}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 32px var(--glow-soft)}
+.btn-ghost{background:transparent;color:var(--text);border-color:var(--border-glass)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn svg{width:18px;height:18px}
+.btn-sm{padding:9px 16px;font-size:14px}
+
+/* ── hero ───────────────────────────────── */
+.hero{position:relative;padding:92px 0 60px;overflow:hidden}
+/* radar sweep */
+.hero::before{
+  content:"";position:absolute;top:-42vw;right:-38vw;width:88vw;height:88vw;min-width:700px;min-height:700px;
+  border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,rgba(52,211,153,.10),transparent 24%);
+  animation:sweep 9s linear infinite;
+  -webkit-mask:radial-gradient(circle,black 0 62%,transparent 63%);
+  mask:radial-gradient(circle,black 0 62%,transparent 63%);
+}
+.hero::after{
+  content:"";position:absolute;top:-42vw;right:-38vw;width:88vw;height:88vw;min-width:700px;min-height:700px;
+  border-radius:50%;pointer-events:none;
+  background:repeating-radial-gradient(circle,transparent 0 59px,rgba(52,211,153,.055) 60px 61px);
+}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.kicker{
+  display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:12.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+  border:1px solid rgba(52,211,153,.35);border-radius:var(--r-pill);padding:7px 16px;margin-bottom:30px;
+}
+.kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2}}
+h1.display{
+  font-size:clamp(46px,8.4vw,110px);font-weight:700;letter-spacing:-.03em;line-height:.98;
+  text-transform:uppercase;max-width:14ch;
+}
+h1.display .row{display:block;overflow:hidden}
+h1.display .row span{display:inline-block;transform:translateY(110%);animation:rise .8s cubic-bezier(.22,1,.36,1) forwards}
+h1.display .row:nth-child(2) span{animation-delay:.12s}
+h1.display .row:nth-child(3) span{animation-delay:.24s;color:var(--primary);text-shadow:0 0 44px var(--glow-primary)}
+@keyframes rise{to{transform:translateY(0)}}
+.hero-sub{
+  margin-top:28px;font-size:clamp(17px,2vw,21px);color:var(--text-dim);max-width:58ch;
+  opacity:0;animation:fadeup .8s .45s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-sub strong{color:var(--text);font-weight:600}
+@keyframes fadeup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px;opacity:0;animation:fadeup .8s .6s cubic-bezier(.22,1,.36,1) forwards}
+.hero-strip{
+  margin-top:56px;font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);
+  display:flex;flex-wrap:wrap;gap:10px 28px;opacity:0;animation:fadeup .8s .75s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-strip b{color:var(--accent);font-weight:500}
+
+/* ── stat board (social proof / receipts) ── */
+.board{border-top:1px solid var(--border-glass);border-bottom:1px solid var(--border-glass);background:var(--bg-elevated)}
+.board-inner{display:grid;grid-template-columns:repeat(2,1fr);max-width:var(--max);margin:0 auto}
+@media(min-width:820px){.board-inner{grid-template-columns:repeat(4,1fr)}}
+.stat{padding:38px 24px;border-right:1px solid var(--border-glass);text-align:left}
+.stat:last-child{border-right:none}
+@media(max-width:819px){.stat:nth-child(2){border-right:none}.stat:nth-child(-n+2){border-bottom:1px solid var(--border-glass)}}
+.stat .num{font-family:var(--font-mono);font-size:clamp(34px,4.4vw,52px);font-weight:700;color:var(--primary);line-height:1;letter-spacing:-.02em}
+.stat .num .arrow{color:var(--text-dim);font-size:.55em;vertical-align:.28em;margin:0 2px}
+.stat .num .good{color:var(--accent)}
+.stat .lbl{margin-top:10px;font-size:13.5px;color:var(--text-dim);line-height:1.45}
+.stat .src{margin-top:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);opacity:.65}
+
+/* ── section scaffolding ────────────────── */
+.sec{padding:96px 0}
+.sec-tag{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.sec h2{font-size:clamp(30px,4.4vw,52px);font-weight:700;text-transform:uppercase;letter-spacing:-.02em;max-width:22ch}
+.sec .lede{margin-top:18px;color:var(--text-dim);max-width:64ch;font-size:17.5px}
+.sec .lede strong{color:var(--text)}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.rv.in{opacity:1;transform:none}
+
+/* ── ablation viz ───────────────────────── */
+.abl{margin-top:52px;background:var(--panel-glass);border:1px solid var(--border-glass);border-radius:var(--r-lg);padding:34px 30px 28px;backdrop-filter:blur(8px)}
+.abl-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:6px}
+.abl-head h3{font-size:19px;font-weight:700}
+.abl-head .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim)}
+.abl-group{margin-top:26px}
+.abl-group .g-lbl{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+.abl-group .g-lbl .unit{color:var(--text-dim);font-weight:400;font-size:12.5px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 58px;align-items:center;gap:14px;margin-bottom:10px}
+@media(max-width:640px){.bar-row{grid-template-columns:104px 1fr 46px}}
+.bar-row .who{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);text-align:right;line-height:1.3}
+.bar-track{height:26px;background:rgba(244,241,232,.05);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;width:0;border-radius:6px;transition:width 1.2s cubic-bezier(.22,1,.36,1);position:relative}
+.bar-fill::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(10,14,20,.15) 10px 12px)}
+.bf-bad{background:var(--err)}
+.bf-worse{background:#B45309}
+.bf-good{background:var(--accent);box-shadow:0 0 22px rgba(52,211,153,.4)}
+.bar-row .val{font-family:var(--font-mono);font-size:16px;font-weight:700;text-align:right}
+.v-bad{color:var(--err)}.v-worse{color:#F59E0B}.v-good{color:var(--accent)}
+.abl-note{margin-top:26px;padding-top:20px;border-top:1px dashed var(--border-glass);font-size:14.5px;color:var(--text-dim)}
+.abl-note strong{color:var(--primary)}
+
+/* full table */
+.tbl-wrap{margin-top:26px;overflow-x:auto;border:1px solid var(--border-glass);border-radius:var(--r-md)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-glass)}
+tbody tr:last-child td{border-bottom:none}
+th{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);background:rgba(244,241,232,.03)}
+td{font-family:var(--font-mono);font-size:13.5px;color:var(--text-dim)}
+td:first-child{font-family:var(--font-body);color:var(--text);font-size:14px}
+td.hl-good{color:var(--accent);font-weight:700}
+td.hl-bad{color:var(--err)}
+td.hl-warn{color:var(--primary)}
+.tbl-cap{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);margin-top:12px}
+
+/* hero image frame */
+.frame{margin-top:56px;border:1px solid var(--border-glass);border-radius:var(--r-lg);overflow:hidden;background:var(--bg-elevated);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.frame-bar{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border-glass)}
+.frame-bar .fdot{width:11px;height:11px;border-radius:50%}
+.frame-bar .fdot:nth-child(1){background:var(--err)}
+.frame-bar .fdot:nth-child(2){background:var(--primary)}
+.frame-bar .fdot:nth-child(3){background:var(--accent)}
+.frame-bar .ftitle{margin-left:10px;font-family:var(--font-mono);font-size:12px;color:var(--text-dim)}
+
+/* ── features (asymmetric) ──────────────── */
+.feat-grid{display:grid;gap:20px;margin-top:52px;grid-template-columns:1fr}
+@media(min-width:820px){
+  .feat-grid{grid-template-columns:repeat(6,1fr)}
+  .feat:nth-child(1){grid-column:span 4}
+  .feat:nth-child(2){grid-column:span 2}
+  .feat:nth-child(3){grid-column:span 2}
+  .feat:nth-child(4){grid-column:span 2}
+  .feat:nth-child(5){grid-column:span 2}
+}
+.feat{
+  background:var(--bg-elevated);border:1px solid var(--border-glass);border-radius:var(--r-md);
+  padding:30px 28px;transition:border-color var(--t-fast),transform var(--t-fast);
+}
+.feat:hover{border-color:rgba(251,191,36,.45);transform:translateY(-3px)}
+.feat .ic{width:44px;height:44px;border-radius:10px;background:rgba(251,191,36,.1);display:grid;place-items:center;margin-bottom:18px}
+.feat .ic svg{width:24px;height:24px;stroke:var(--primary);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feat h3{font-size:19px;margin-bottom:10px}
+.feat p{font-size:14.8px;color:var(--text-dim)}
+.feat code{font-family:var(--font-mono);font-size:12.5px;color:var(--accent);background:rgba(52,211,153,.08);padding:1px 6px;border-radius:4px}
+.feat.wide{display:grid;gap:8px 28px}
+@media(min-width:640px){.feat.wide{grid-template-columns:auto 1fr;align-items:start}.feat.wide .ic{margin-bottom:0}}
+
+/* ── honest cards ───────────────────────── */
+.honest-grid{display:grid;gap:20px;margin-top:48px;grid-template-columns:1fr}
+@media(min-width:820px){.honest-grid{grid-template-columns:repeat(3,1fr)}}
+.hcard{border:1px dashed rgba(251,191,36,.35);border-radius:var(--r-md);padding:26px 24px;background:rgba(251,191,36,.03)}
+.hcard .htag{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);margin-bottom:12px}
+.hcard h3{font-size:17px;margin-bottom:9px}
+.hcard p{font-size:14.3px;color:var(--text-dim)}
+.hcard code{font-family:var(--font-mono);font-size:12.5px;color:var(--accent)}
+
+/* ── FAQ ────────────────────────────────── */
+.faq{max-width:820px;margin-top:44px}
+details{border-bottom:1px solid var(--border-glass)}
+summary{
+  cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;
+  padding:22px 4px;font-family:var(--font-display);font-weight:700;font-size:17.5px;transition:color var(--t-fast);
+}
+summary:hover{color:var(--primary)}
+summary::-webkit-details-marker{display:none}
+summary .plus{font-family:var(--font-mono);color:var(--accent);flex:none;transition:transform var(--t-fast)}
+details[open] summary .plus{transform:rotate(45deg)}
+details p{padding:0 4px 24px;color:var(--text-dim);font-size:15.5px;max-width:70ch}
+details code{font-family:var(--font-mono);font-size:13px;color:var(--accent)}
+
+/* ── final CTA ──────────────────────────── */
+.final{
+  text-align:center;padding:120px 0;position:relative;overflow:hidden;
+  border-top:1px solid var(--border-glass);
+}
+.final::before{
+  content:"";position:absolute;left:50%;bottom:-260px;transform:translateX(-50%);
+  width:900px;height:520px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(ellipse at center,rgba(251,191,36,.13),transparent 65%);
+}
+.final h2{font-size:clamp(34px,5.6vw,64px);text-transform:uppercase;letter-spacing:-.02em;max-width:20ch;margin:0 auto}
+.final h2 em{font-style:normal;color:var(--primary);text-shadow:0 0 44px var(--glow-primary)}
+.final .sub{margin:20px auto 0;color:var(--text-dim);max-width:52ch}
+.clone{
+  margin:38px auto 0;max-width:560px;display:flex;align-items:center;gap:14px;
+  background:var(--bg-elevated);border:1px solid var(--border-glass);border-radius:var(--r-md);
+  padding:16px 20px;font-family:var(--font-mono);font-size:14px;cursor:pointer;color:var(--text);
+  transition:border-color var(--t-fast);width:100%;text-align:left;
+}
+.clone:hover{border-color:var(--accent)}
+.clone .prompt{color:var(--accent);flex:none}
+.clone .cmd{overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.clone .copy-lbl{margin-left:auto;flex:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.final .ctas{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:34px}
+.runway{display:flex;gap:26px;justify-content:center;margin-top:64px}
+.runway i{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:blink 1.6s ease-in-out infinite}
+.runway i:nth-child(2){animation-delay:.2s}.runway i:nth-child(3){animation-delay:.4s}
+.runway i:nth-child(4){animation-delay:.6s}.runway i:nth-child(5){animation-delay:.8s}
+
+/* ── footer ─────────────────────────────── */
+footer{border-top:1px solid var(--border-glass);background:var(--bg-elevated);padding:64px 0 40px;position:relative;z-index:2}
+.foot-grid{display:grid;gap:40px;grid-template-columns:1fr}
+@media(min-width:820px){.foot-grid{grid-template-columns:2fr 1fr 1fr 1fr}}
+.foot-brand p{color:var(--text-dim);font-size:14px;max-width:34ch;margin-top:14px}
+.foot-col h4{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:18px}
+.foot-col ul{list-style:none}
+.foot-col li{margin-bottom:11px}
+.foot-col a{color:var(--text);text-decoration:none;font-size:14.5px;transition:color var(--t-fast)}
+.foot-col a:hover{color:var(--primary)}
+.foot-base{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-glass);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--text-dim)}
+
+/* focus + motion */
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  h1.display .row span{transform:none}
+  .hero-sub,.hero-ctas,.hero-strip{opacity:1}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ═══ 2 · sticky header ═══ -->
+<header>
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="/" aria-label="Tarmac home">
+      <!-- animated brand icon (inline SMIL) -->
+      <svg viewBox="0 0 512 512" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#FBBF24"/></linearGradient>
+          <radialGradient id="tglow" cx=".5" cy=".4" r=".65"><stop offset="0" stop-color="#FBBF24" stop-opacity=".45"/><stop offset="1" stop-color="#FBBF24" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect x="16" y="16" width="480" height="480" rx="104" fill="#0A0E14"/>
+        <rect x="16" y="16" width="480" height="480" rx="104" fill="url(#tglow)"><animate attributeName="opacity" values=".45;.95;.45" dur="4.2s" repeatCount="indefinite"/></rect>
+        <g>
+          <rect x="126" y="116" width="260" height="132" rx="22" fill="url(#tg)"/>
+          <rect x="126" y="264" width="260" height="132" rx="22" fill="#141A24" stroke="url(#tg)" stroke-width="8"/>
+          <g transform="translate(0 256)">
+            <rect x="126" y="-140" width="260" height="132" rx="22" fill="#F4F1E8" opacity="0"><animate attributeName="opacity" values="0;0;.95;0" keyTimes="0;.55;.7;1" dur="3.4s" repeatCount="indefinite"/></rect>
+            <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1 1;1 -0.05;1 1" keyTimes="0;.55;.7;1" dur="3.4s" repeatCount="indefinite"/>
+          </g>
+          <rect x="118" y="250" width="276" height="12" rx="6" fill="#0A0E14"/>
+        </g>
+        <path d="M256 138 L286 200 L262 192 L256 214 L250 192 L226 200 Z" fill="#0A0E14"/>
+        <g fill="#34D399">
+          <circle cx="156" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" repeatCount="indefinite"/></circle>
+          <circle cx="206" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".2s" repeatCount="indefinite"/></circle>
+          <circle cx="256" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".4s" repeatCount="indefinite"/></circle>
+          <circle cx="306" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".6s" repeatCount="indefinite"/></circle>
+          <circle cx="356" cy="440" r="10"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" begin=".8s" repeatCount="indefinite"/></circle>
+        </g>
+      </svg>
+      TARMAC
+      <span class="callsign">// OPS CONSOLE</span>
+    </a>
+    <div class="nav-links">
+      <a href="#ablation">The Number</a>
+      <a href="#features">Protocol</a>
+      <a href="#honest">Honest by Design</a>
+      <a href="#faq">FAQ</a>
+      <a href="/pitch/">Pitch Deck</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-primary btn-sm" href="https://github.com/edycutjong/tarmac">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.53-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.35.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- ═══ 3+4 · hero ═══ -->
+<section class="hero">
+  <div class="wrap">
+    <p class="kicker"><span class="dot" aria-hidden="true"></span> QwenCloud Hackathon · Track 3 · Agent Society</p>
+    <h1 class="display" aria-label="Five agents. Nine seats. The right people fly.">
+      <span class="row"><span>Five agents.</span></span>
+      <span class="row"><span>Nine seats.</span></span>
+      <span class="row"><span>The right people fly.</span></span>
+    </h1>
+    <p class="hero-sub">
+      Tarmac is an airline irregular-ops <strong>agent society</strong> where conflict is the
+      architecture: five agents with opposed objectives negotiate <strong>sealed-bid claims</strong>
+      on a row-locked seat ledger, and a mediator resolves mechanically detected deadlocks with
+      <strong>Ed25519-signed, regulation-cited rulings</strong>. An ablation bench proves the
+      society beats a single planner — measurably.
+    </p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="https://github.com/edycutjong/tarmac">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.53-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.35.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        View on GitHub
+      </a>
+      <a class="btn btn-ghost" href="/pitch/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+        Pitch Deck
+      </a>
+    </div>
+    <p class="hero-strip mono">
+      <span>SCENARIO <b>storm_dfw</b></span>
+      <span>PAX <b>180</b> / SEATS <b>139</b></span>
+      <span>OFFLINE <b>zero keys</b></span>
+      <span>REPLAY <b>byte-identical</b></span>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ 5 · receipts ═══ -->
+<section class="board" aria-label="Measured results">
+  <div class="board-inner">
+    <div class="stat rv">
+      <p class="num"><span data-count="17">0</span><span class="arrow">→</span><span class="good" data-count="3">0</span></p>
+      <p class="lbl">Protected passengers stranded — single planner vs the society</p>
+      <p class="src">docs/BENCH.md · 10 seeds</p>
+    </div>
+    <div class="stat rv">
+      <p class="num"><span data-count="0">0</span>%<span class="arrow">→</span><span class="good" data-count="100">0</span>%</p>
+      <p class="lbl">Special-needs SLA met — minors, medical, wheelchair</p>
+      <p class="src">docs/BENCH.md · 10 seeds</p>
+    </div>
+    <div class="stat rv">
+      <p class="num"><span data-count="327">0</span></p>
+      <p class="lbl">Tests, all green, in ~5 seconds</p>
+      <p class="src">pytest · CI on every push</p>
+    </div>
+    <div class="stat rv">
+      <p class="num"><span data-count="99">0</span>%</p>
+      <p class="lbl">Coverage across ledger, bids, deadlock, mediator, invariants</p>
+      <p class="src">pytest --cov=tarmac_society</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 6 · the ablation ═══ -->
+<section class="sec" id="ablation">
+  <div class="wrap">
+    <p class="sec-tag rv">The one number</p>
+    <h2 class="rv">Strip the mediator and it's 96.</h2>
+    <p class="lede rv">
+      Same storm, three conditions, ten seeds, fully deterministic. The society doesn't just beat a
+      single planner — remove its mediator and the society becomes <strong>worse than one planner</strong>,
+      because contested claims get quarantined with no one to rule. The mediator is
+      <strong>load-bearing, not decorative</strong>.
+    </p>
+
+    <div class="abl rv" id="ablviz">
+      <div class="abl-head">
+        <h3>Ablation — storm_dfw</h3>
+        <span class="meta">180 pax · 139 legal seats · medians of 10 seeds · <code>tarmac bench</code></span>
+      </div>
+
+      <div class="abl-group">
+        <p class="g-lbl">Protected passengers stranded <span class="unit">(medical courier · minor · wheelchair · tight connections — lower is better)</span></p>
+        <div class="bar-row"><span class="who">SINGLE PLANNER</span><div class="bar-track"><div class="bar-fill bf-bad" data-w="17.7"></div></div><span class="val v-bad">17</span></div>
+        <div class="bar-row"><span class="who">SOCIETY − MEDIATOR</span><div class="bar-track"><div class="bar-fill bf-worse" data-w="14.6"></div></div><span class="val v-worse">14</span></div>
+        <div class="bar-row"><span class="who">FULL SOCIETY</span><div class="bar-track"><div class="bar-fill bf-good" data-w="3.1"></div></div><span class="val v-good">3</span></div>
+      </div>
+
+      <div class="abl-group">
+        <p class="g-lbl">Stranded overnight — no seat at all <span class="unit">(lower is better)</span></p>
+        <div class="bar-row"><span class="who">SINGLE PLANNER</span><div class="bar-track"><div class="bar-fill bf-bad" data-w="54.2"></div></div><span class="val v-bad">52</span></div>
+        <div class="bar-row"><span class="who">SOCIETY − MEDIATOR</span><div class="bar-track"><div class="bar-fill bf-worse" data-w="100"></div></div><span class="val v-worse">96</span></div>
+        <div class="bar-row"><span class="who">FULL SOCIETY</span><div class="bar-track"><div class="bar-fill bf-good" data-w="52.1"></div></div><span class="val v-good">50</span></div>
+      </div>
+
+      <p class="abl-note">
+        Seat <em>supply</em> is physically fixed — 139 seats for 180 passengers — so raw strandings
+        barely move. The society's win is in <strong>who flies</strong>: the single planner seats a
+        flexible high-fare passenger on the last compliant nonstop while stranding the medical
+        courier; the society doesn't.
+      </p>
+    </div>
+
+    <div class="tbl-wrap rv">
+      <table>
+        <caption class="sr-only" style="position:absolute;left:-999px">Full ablation benchmark table</caption>
+        <thead>
+          <tr><th scope="col">Metric</th><th scope="col">Single planner</th><th scope="col">Society − mediator</th><th scope="col">Full society</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Protected pax stranded (SLA-failed) ↓</td><td class="hl-bad">17</td><td class="hl-warn">14</td><td class="hl-good">3</td></tr>
+          <tr><td>Stranded overnight (no seat) ↓</td><td>52 [50–53]</td><td class="hl-bad">96 [81–109]</td><td class="hl-good">50 [49–52]</td></tr>
+          <tr><td>Tight connections saved ↑</td><td>0</td><td>3</td><td class="hl-good">9</td></tr>
+          <tr><td>Special-needs SLA met (%) ↑</td><td class="hl-bad">0.0</td><td class="hl-bad">0.0</td><td class="hl-good">100.0</td></tr>
+          <tr><td>Crew duty violations (invariant I2) ↓</td><td class="hl-bad">1</td><td>0</td><td class="hl-good">0</td></tr>
+          <tr><td>Rounds to quiescence ↓</td><td>1</td><td>6</td><td>5</td></tr>
+          <tr><td>Contest stake (credibility) ↓</td><td>0</td><td>60</td><td class="hl-good">40</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tbl-cap rv">Medians across 10 seeds; [q1–q3] IQR. Offline deterministic policy agents; identical scenario per seed across all three conditions. Reproduce: <code class="mono">tarmac bench</code>.</p>
+
+    <div class="frame rv">
+      <div class="frame-bar" aria-hidden="true">
+        <span class="fdot"></span><span class="fdot"></span><span class="fdot"></span>
+        <span class="ftitle">tarmac run --scenario storm_dfw --seed 7</span>
+      </div>
+      <img src="/readme-hero.png" alt="Tarmac hero panel — five agents negotiating seats on an amber departure board" loading="lazy" width="2560" height="1280" />
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 7 · protocol features ═══ -->
+<section class="sec" id="features" style="background:var(--bg-elevated);border-top:1px solid var(--border-glass);border-bottom:1px solid var(--border-glass)">
+  <div class="wrap">
+    <p class="sec-tag rv">The protocol</p>
+    <h2 class="rv">Claims are function calls, not sentences.</h2>
+    <p class="lede rv">Contention has physics: a claim is a typed mutation against a real ledger. Two threads racing the last seat — exactly one wins. Tested.</p>
+
+    <div class="feat-grid">
+      <article class="feat wide rv">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></svg></div>
+        <div>
+          <h3>Sealed-bid commit → reveal</h3>
+          <p>In contested rounds every agent posts <code>SHA256(claim ‖ nonce)</code> before anyone reveals — rivals can't adapt a bid after seeing another's. The ledger rejects any reveal that doesn't re-derive its digest (invariant I4). Negotiation that's provably leak-free.</p>
+        </div>
+      </article>
+      <article class="feat rv">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="12" cy="18" r="2.6"/><path d="M8 7.5 10.5 16M16 7.5 13.5 16M8.6 6h6.8"/></svg></div>
+        <h3>Mechanical deadlock detection</h3>
+        <p>A wait-for cycle or a resource contested ≥2 rounds triggers mediation. Never vibes-based — always reproducible.</p>
+      </article>
+      <article class="feat rv">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.9-7 9-4-1.1-7-4.5-7-9V6z"/><path d="M9.2 12l2 2 3.8-4"/></svg></div>
+        <h3>Ed25519-signed rulings</h3>
+        <p>Every mediator ruling is signed and cites a regulation — a portable artifact you can verify with the public key, without trusting the database.</p>
+      </article>
+      <article class="feat rv">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/><rect x="9" y="9.5" width="6" height="5" rx="1"/></svg></div>
+        <h3>Row-locked seat ledger</h3>
+        <p>SQLite row locks enforce capacity and exclusivity (I1). Double-claims are rejected at the storage layer, and every event extends a hash-chained log — <code>replay</code> re-derives the identical manifest (I5).</p>
+      </article>
+      <article class="feat rv">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/><path d="M11 7.5h4a2 2 0 0 1 2 2V13M13 16.5H9a2 2 0 0 1-2-2V11"/></svg></div>
+        <h3>Domain-agnostic core</h3>
+        <p>The protocol ships as <code>tarmac-society</code> — <code>ClaimLedger</code>, <code>DeadlockDetector</code>, <code>Mediator</code>. <code>examples/meeting_rooms.py</code> reuses it for room booking in 20 lines. Not airline-shaped.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 8 · honest by design ═══ -->
+<section class="sec" id="honest">
+  <div class="wrap">
+    <p class="sec-tag rv">Honest by design</p>
+    <h2 class="rv">What's real, exactly.</h2>
+    <p class="lede rv">Every claim on this page is committed to the repo and checked in CI. Here's the fine print, up front.</p>
+    <div class="honest-grid">
+      <article class="hcard rv">
+        <p class="htag">Offline default</p>
+        <h3>Deterministic policy agents</h3>
+        <p>The default run uses deterministic policy agents — no network, no key, byte-identical every time. They genuinely negotiate, deadlock, and resolve on the fixture. Add <code>--live</code> + <code>DASHSCOPE_API_KEY</code> to swap in the real Qwen agents (<code>qwen3.7-plus</code> roles, <code>qwen3.7-max</code> mediator).</p>
+      </article>
+      <article class="hcard rv">
+        <p class="htag">Wire-tested, not vaporware</p>
+        <h3>19 tests drive the live path</h3>
+        <p>The <code>LiveQwen</code> DashScope transport is exercised by 19 deterministic tests against a stub client — model routing, structured output, one-retry, the mediator's thinking flag, embeddings. <code>--live</code> executes an already-verified path; it adds tokens, not code.</p>
+      </article>
+      <article class="hcard rv">
+        <p class="htag">A simulator, stated plainly</p>
+        <h3>Rehearsal, not a live GDS</h3>
+        <p>Synthetic reservation data, one curated storm plus a seeded generator. Decision-support and rehearsal — not a live booking integration. ECS deployment is documented in <code>infra/ecs/</code>, not claimed as deployed.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 9 · FAQ ═══ -->
+<section class="sec" id="faq" style="background:var(--bg-elevated);border-top:1px solid var(--border-glass)">
+  <div class="wrap">
+    <p class="sec-tag rv">Flight information</p>
+    <h2 class="rv">Questions judges ask.</h2>
+    <div class="faq rv">
+      <details>
+        <summary>Why is the mediator "load-bearing"? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>The ablation's middle column is the proof: run the identical society without adjudication and contested claims are quarantined at the round cap — 96 passengers stranded overnight versus 52 for a lone planner and 50 for the full society. Deleting one component makes the system worse than the baseline; that's an existence proof the component does the work.</p>
+      </details>
+      <details>
+        <summary>Can I verify the results without an API key? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>Yes — that's the designed judge path. <code>python scripts/verify_offline.py</code> disables all sockets, runs the full society on the committed fixture, replays the manifest from the hash-chained log, and re-checks invariants I1–I5. Exit 0 means the run reproduced itself byte-for-byte with zero network.</p>
+      </details>
+      <details>
+        <summary>What stops agents from arguing forever? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>A credibility currency: contesting a claim costs points, winning refunds them plus a premium, losing burns them. Argument is economically bounded — the bench reports the stake spent (40 for the full society vs 60 without a mediator), and rounds to quiescence stay finite.</p>
+      </details>
+      <details>
+        <summary>Why does this need Qwen Cloud specifically? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>The society must be <em>measured</em>, not just demoed. <code>qwen3.7-plus</code> keeps five role personas affordable across ~60 turns per run; <code>qwen3.7-max</code> with thinking adjudicates five conflicting position papers; structured output makes claims mechanically executable; context cache reuses the 4k-token storm prefix every turn; the Batch API prices a 60-run ablation. Remove that stack and the benchmark becomes economically impossible.</p>
+      </details>
+      <details>
+        <summary>Is this only for airlines? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>No. The negotiation core — <code>ClaimLedger</code>, <code>DeadlockDetector</code>, <code>Commitment</code>, <code>Mediator</code> — is domain-agnostic. <code>examples/meeting_rooms.py</code> rebuilds meeting-room booking on the same protocol in about 20 lines. Anywhere agents contend for scarce, exclusive resources, the physics transfer.</p>
+      </details>
+      <details>
+        <summary>How solid is the code, really? <span class="plus" aria-hidden="true">+</span></summary>
+        <p>327 tests, 99% coverage, green in ~5 seconds — covering ledger locking and double-claim rejection, commit→reveal mismatch rejection, the deadlock detector on synthetic wait-for graphs, credibility math, the ruling flow, invariants I1–I5, and a fixture guarantee that <code>storm_dfw</code> always produces at least one genuine deadlock. CI runs ruff, mypy, pytest, CodeQL, pip-audit, TruffleHog, and a wheel-install smoke test on every push.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 10 · final CTA ═══ -->
+<section class="final">
+  <div class="wrap">
+    <p class="sec-tag rv">Cleared for departure</p>
+    <h2 class="rv">Run the storm <em>yourself</em>.<br />Zero keys. Five seconds.</h2>
+    <p class="sub rv">One command verifies the whole society offline — sockets disabled, invariants replayed, exit 0.</p>
+    <button class="clone rv" id="cloneBtn" type="button" aria-label="Copy git clone command to clipboard">
+      <span class="prompt" aria-hidden="true">$</span>
+      <span class="cmd">git clone https://github.com/edycutjong/tarmac</span>
+      <span class="copy-lbl" id="copyLbl">Copy</span>
+    </button>
+    <div class="ctas rv">
+      <a class="btn btn-primary" href="https://github.com/edycutjong/tarmac">View on GitHub</a>
+      <a class="btn btn-ghost" href="/pitch/">See the Pitch Deck</a>
+    </div>
+    <div class="runway" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ 11 · footer ═══ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="/" style="font-size:18px">
+          <img src="/icon.svg" alt="" width="30" height="30" style="border-radius:7px" />
+          TARMAC
+        </a>
+        <p>An airline irregular-ops agent society. Built for the Global AI Hackathon with Qwen Cloud — Track 3: Agent Society.</p>
+      </div>
+      <nav class="foot-col" aria-label="Project">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/edycutjong/tarmac">GitHub Repository</a></li>
+          <li><a href="/pitch/">Pitch Deck</a></li>
+          <li><a href="https://github.com/edycutjong/tarmac/blob/main/DEMO.md">Judge Demo Guide</a></li>
+          <li><a href="https://github.com/edycutjong/tarmac/blob/main/docs/BENCH.md">Ablation Benchmark</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-col" aria-label="Hackathon">
+        <h4>Hackathon</h4>
+        <ul>
+          <li><a href="https://qwencloud-hackathon.devpost.com/">QwenCloud on Devpost</a></li>
+          <li><a href="https://github.com/edycutjong/tarmac/actions">CI Pipeline</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-col" aria-label="Legal">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="https://github.com/edycutjong/tarmac/blob/main/LICENSE">MIT License</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="foot-base">
+      <span>© 2026 Edy Cu. Built solo in one day of a multi-project sprint.</span>
+      <span>TARMAC // tarmac.edycu.dev</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* scroll reveal */
+  var rvs = document.querySelectorAll(".rv");
+  if (reduced || !("IntersectionObserver" in window)) {
+    rvs.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    rvs.forEach(function(el){ io.observe(el); });
+  }
+
+  /* count-up receipts */
+  function countUp(el){
+    var target = parseInt(el.getAttribute("data-count"), 10);
+    if (reduced) { el.textContent = target; return; }
+    var dur = 1400, t0 = null;
+    function step(ts){
+      if (!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var counters = document.querySelectorAll("[data-count]");
+  if (!("IntersectionObserver" in window) || reduced) {
+    counters.forEach(function(el){ el.textContent = el.getAttribute("data-count"); });
+  } else {
+    var cio = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { countUp(e.target); cio.unobserve(e.target); }
+      });
+    }, { threshold: 0.6 });
+    counters.forEach(function(el){ cio.observe(el); });
+  }
+
+  /* ablation bars */
+  var viz = document.getElementById("ablviz");
+  function fillBars(){
+    viz.querySelectorAll(".bar-fill").forEach(function(b){
+      b.style.width = b.getAttribute("data-w") + "%";
+    });
+  }
+  if (reduced || !("IntersectionObserver" in window)) {
+    fillBars();
+  } else {
+    var bio = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { fillBars(); bio.unobserve(e.target); }
+      });
+    }, { threshold: 0.3 });
+    bio.observe(viz);
+  }
+
+  /* copy-on-click clone */
+  var btn = document.getElementById("cloneBtn"), lbl = document.getElementById("copyLbl");
+  btn.addEventListener("click", function(){
+    var cmd = "git clone https://github.com/edycutjong/tarmac";
+    function done(){
+      lbl.textContent = "Copied ✓";
+      lbl.style.color = "var(--accent)";
+      setTimeout(function(){ lbl.textContent = "Copy"; lbl.style.color = ""; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cmd).then(done, done);
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = cmd; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch(e){}
+      document.body.removeChild(ta); done();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -6,6 +6,8 @@
 
   <br/><br/>
 
+  [![Live](https://img.shields.io/badge/%F0%9F%9B%AC_Live-tarmac.edycu.dev-06b6d4?style=for-the-badge)](https://tarmac.edycu.dev)
+  [![Pitch Deck](https://img.shields.io/badge/%F0%9F%93%BD%EF%B8%8F_Pitch-Deck-f59e0b?style=for-the-badge)](https://tarmac.edycu.dev/pitch/)
   [![Demo Path](https://img.shields.io/badge/%F0%9F%95%B9%EF%B8%8F_Judge-Demo_Path-F59E0B?style=for-the-badge)](DEMO.md)
   [![QwenCloud Hackathon](https://img.shields.io/badge/QwenCloud-Track_3_Agent_Society-8b5cf6?style=for-the-badge)](https://qwencloud-hackathon.devpost.com/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-06b6d4?style=for-the-badge)](LICENSE)
