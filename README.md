@@ -10,6 +10,7 @@
   [![Live on Alibaba Function Compute](https://img.shields.io/badge/%E2%98%81%EF%B8%8F_Live_on-Alibaba_Function_Compute-FF6A00?style=for-the-badge)](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify)
   [![Pitch Deck](https://img.shields.io/badge/%F0%9F%93%BD%EF%B8%8F_Pitch-Deck-f59e0b?style=for-the-badge)](https://tarmac.edycu.dev/pitch/)
   [![Watch Demo](https://img.shields.io/badge/%E2%96%B6_Watch-Demo_Video-FF0000?style=for-the-badge)](https://youtu.be/cOfFwumzG7k)
+  [![Devpost](https://img.shields.io/badge/Devpost-Submission-003E54?style=for-the-badge&logo=devpost)](https://devpost.com/software/tarmac-w2gbli)
   [![Demo Path](https://img.shields.io/badge/%F0%9F%95%B9%EF%B8%8F_Judge-Demo_Path-F59E0B?style=for-the-badge)](DEMO.md)
   [![QwenCloud Hackathon](https://img.shields.io/badge/QwenCloud-Track_3_Agent_Society-8b5cf6?style=for-the-badge)](https://qwencloud-hackathon.devpost.com/)
 
