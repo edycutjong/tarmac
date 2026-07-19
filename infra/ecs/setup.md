@@ -1,14 +1,18 @@
-# Alibaba Cloud ECS — orchestrator setup
+# Alibaba Cloud ECS — orchestrator setup (optional alternative)
 
-> **Status: documented, not yet provisioned.** The society runs and is fully
-> tested locally (offline); the live Qwen path (`--live`) is wired and
-> wire-tested against the transport, but has never been executed against
-> DashScope. This is the runbook
-> for hosting the live orchestrator on a persistent Alibaba Cloud ECS instance;
-> it has not been stood up for this submission. Nothing else in Tarmac depends on
-> it — the graded path is the offline deterministic run and the committed bench.
+> **Status: optional alternative — NOT the deployed target.** Tarmac is deployed
+> live on **Alibaba Cloud Function Compute** (see [`infra/fc/`](../fc/)) — the
+> `/verify` endpoint re-checks the committed run byte-for-byte in the cloud. This
+> ECS runbook is only an optional persistent-host alternative and has not been
+> stood up for this submission.
+>
+> Note on the live model path: the live Qwen path (`--live`) **has** been executed
+> against DashScope — a full `qwen3.7-plus` / `qwen3.7-max` run is committed at
+> [`docs/proof/live_run.db`](../../docs/proof/) and replays byte-for-byte
+> (`tarmac verify-log docs/proof/live_run.db`). The graded path is still the
+> offline deterministic run and the committed bench.
 
-## Why ECS (not Function Compute)
+## Why you might use ECS instead of Function Compute
 
 A society run is a long, stateful, multi-round loop that streams agent turns and
 ledger events over SSE. A persistent host suits it better than a per-request
