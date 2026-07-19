@@ -1,0 +1,11 @@
+.venv
+.git
+**/__pycache__
+*.pyc
+runs
+ideas
+.pytest_cache
+.ruff_cache
+.mypy_cache
+htmlcov
+site

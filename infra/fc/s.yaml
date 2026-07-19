@@ -1,0 +1,51 @@
+# Serverless Devs (s.yaml) — Tarmac on Alibaba Function Compute 3.0.
+#
+# MANAGED python3.10 runtime (no container / no ACR / no real-name verification).
+# Tarmac needs enum.StrEnum (3.11+); infra/fc/wsgi.py shims it before importing
+# the package, so the app runs unchanged on the 3.10 managed runtime.
+#
+#   s deploy            # zips code + installs requirements.txt, creates the fn + HTTP trigger
+#
+# Endpoints (anonymous HTTP trigger):
+#   GET /verify   re-verify the committed live-Qwen run (I1/I3/I4/I5)
+#   GET /run      run one deterministic offline society round
+#   GET /health   liveness
+
+edition: 3.0.0
+name: tarmac-fc
+access: default
+
+vars:
+  region: ap-southeast-1
+
+resources:
+  tarmac:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: tarmac
+      description: "Tarmac — auditable multi-agent society (Qwen Cloud)"
+      role: acs:ram::5640684230009202:role/fctarmacrole
+      logConfig:
+        logstore: default-logs
+        project: serverless-ap-southeast-1-e8525c86-e339-5042-a954-65e744c75e17
+      runtime: python3.10
+      handler: infra.fc.wsgi.handler
+      cpu: 0.35
+      memorySize: 512
+      diskSize: 512
+      timeout: 60
+      instanceConcurrency: 5
+      # code root = the build dir (this file lives in infra/fc/).
+      code: ../../
+      environmentVariables:
+        # s build installs requirements.txt deps under /code/python
+        PYTHONPATH: /code/python
+      triggers:
+        - triggerName: http
+          triggerType: http
+          triggerConfig:
+            authType: anonymous
+            methods:
+              - GET
+              - POST

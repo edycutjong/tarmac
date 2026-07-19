@@ -1,0 +1,2 @@
+pydantic>=2.7
+pynacl>=1.5
