@@ -128,7 +128,7 @@
     <rect x="209" y="574" width="141" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="227" cy="589" r="3.5" fill="#FBBF24"/><text x="239" y="594" fill="#98A1AE">qwen3.7-plus</text>
     <rect x="362" y="574" width="149" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="380" cy="589" r="3.5" fill="#FBBF24"/><text x="392" y="594" fill="#98A1AE">context cache</text>
     <rect x="523" y="574" width="117" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="541" cy="589" r="3.5" fill="#FBBF24"/><text x="553" y="594" fill="#98A1AE">Batch API</text>
-    <rect x="652" y="574" width="133" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="670" cy="589" r="3.5" fill="#FBBF24"/><text x="682" y="594" fill="#98A1AE">Alibaba ECS</text>
+    <rect x="652" y="574" width="133" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="670" cy="589" r="3.5" fill="#FBBF24"/><text x="682" y="594" fill="#98A1AE">Alibaba FC</text>
     <rect x="797" y="574" width="109" height="30" rx="15" fill="#141A24" stroke="#F4F1E8" stroke-opacity=".14"/><circle cx="815" cy="589" r="3.5" fill="#FBBF24"/><text x="827" y="594" fill="#98A1AE">Supabase</text>
     <g text-anchor="end"><text x="1216" y="594" fill="#98A1AE" opacity=".8">ONE STORM · 6 ROUNDS · QUIESCENT</text></g>
   </g>
