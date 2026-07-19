@@ -7,6 +7,7 @@
   <br/><br/>
 
   [![Live](https://img.shields.io/badge/%F0%9F%9B%AC_Live-tarmac.edycu.dev-06b6d4?style=for-the-badge)](https://tarmac.edycu.dev)
+  [![Live on Alibaba Function Compute](https://img.shields.io/badge/%E2%98%81%EF%B8%8F_Live_on-Alibaba_Function_Compute-FF6A00?style=for-the-badge)](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify)
   [![Pitch Deck](https://img.shields.io/badge/%F0%9F%93%BD%EF%B8%8F_Pitch-Deck-f59e0b?style=for-the-badge)](https://tarmac.edycu.dev/pitch/)
   [![Demo Path](https://img.shields.io/badge/%F0%9F%95%B9%EF%B8%8F_Judge-Demo_Path-F59E0B?style=for-the-badge)](DEMO.md)
   [![QwenCloud Hackathon](https://img.shields.io/badge/QwenCloud-Track_3_Agent_Society-8b5cf6?style=for-the-badge)](https://qwencloud-hackathon.devpost.com/)
@@ -14,7 +15,7 @@
   <br/>
 
   ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?style=flat&logo=python&logoColor=white)
-  ![Tests](https://img.shields.io/badge/tests-329_passed-2ea44f?style=flat)
+  ![Tests](https://img.shields.io/badge/tests-330_passed-2ea44f?style=flat)
   ![Coverage](https://img.shields.io/badge/coverage-100%25-2ea44f?style=flat)
   [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-2ea44f?style=flat)](https://github.com/edycutjong/tarmac/actions/workflows/codeql.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-06b6d4)](LICENSE)
@@ -70,12 +71,30 @@ Everything above runs against **deterministic policy agents** — no network, no
 API key, byte-identical every time. Add `--live` (and `DASHSCOPE_API_KEY`) to
 swap in the real Qwen agents.
 
+## ☁️ Deployed on Alibaba Cloud
+
+Tarmac runs live on **Alibaba Cloud Function Compute** — a managed `python3.10`
+runtime in `ap-southeast-1`, deployed straight from source (WSGI, no container
+registry):
+
+**<https://tarmac-xceukceokg.ap-southeast-1.fcapp.run>**
+
+| Endpoint | What it does |
+|---|---|
+| [`/verify`](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify) | Re-verifies the committed **live Qwen run** (`qwen3.7-plus` roles + `qwen3.7-max` mediator, 324-entry hash-chained log) **byte-for-byte, in the cloud** — chain, I5 replay, I1 capacity/exclusivity, I2 crew-duty, I3 cited rulings and I4 sealed-bid reveals all PASS |
+| [`/run?scenario=storm_dfw&seed=7`](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/run?scenario=storm_dfw&seed=7) | Runs a fresh deterministic society on demand, returns the manifest + hash |
+| [`/health`](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/health) | Liveness probe (`{"status":"ok"}`) |
+
+The same invariant-checked replay that runs offline (`tarmac verify-log`) also
+runs **server-side on Alibaba Cloud**, against a real live-Qwen run committed at
+[`docs/proof/`](docs/proof/). Deploy config lives in [`infra/fc/`](infra/fc/).
+
 ## ✅ Testing & CI
 
-**329 tests, all green, 100% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
+**330 tests, all green, 100% coverage** (`./.venv/bin/pytest --cov=tarmac_society`), in ~5 seconds:
 
 ```
-============================= 329 passed in 4.94s ==============================
+============================= 330 passed in 5.56s ==============================
 ```
 
 They cover the ledger's locking + double-claim rejection, sealed-bid commit→reveal
@@ -104,7 +123,7 @@ stages a frontend project would run:
 | Layer | Tool | Status |
 |---|---|---|
 | Code Quality | ruff + mypy | ✅ |
-| Unit Testing | pytest (100% coverage, 329 tests) | ✅ |
+| Unit Testing | pytest (100% coverage, 330 tests) | ✅ |
 | Offline Verification | `scripts/verify_offline.py` (I1–I5 replay, zero network) | ✅ |
 | Security (SAST) | CodeQL (Python) | ✅ |
 | Security (SCA) | Dependabot (pip + github-actions) + pip-audit | ✅ |
@@ -147,7 +166,7 @@ flowchart TB
   ORCH -.-> BN["ablation_bench.py — single vs society vs no-mediator"]
 ```
 
-<sub>**As built** = offline uses deterministic **policy agents** (genuinely negotiate/deadlock/resolve on the fixture); live mode swaps in Qwen LLM agents behind `DASHSCOPE_API_KEY`. Storage is SQLite; ECS is documented (`infra/ecs/`), not deployed. Plain-text view below.</sub>
+<sub>**As built** = offline uses deterministic **policy agents** (genuinely negotiate/deadlock/resolve on the fixture); live mode swaps in Qwen LLM agents behind `DASHSCOPE_API_KEY` (a real live run is committed at `docs/proof/`). Storage is SQLite; deployed live on Alibaba Function Compute (`infra/fc/`). Plain-text view below.</sub>
 
 ```
 storm fixture ─▶ round scheduler ─▶ 5 role agents (private objectives)
@@ -203,19 +222,22 @@ model routing, the embedded-JSON-schema structured-output contract, the single
 reject-and-retry on invalid JSON, the `enable_thinking` flag on the mediator,
 per-agent claim/position filtering, and `text-embedding-v4` batching. Flipping on
 `--live` executes that already-verified path; it only adds tokens, not new code.
-The one thing offline can't show is a live model's *judgement*, so a real
-`DASHSCOPE_API_KEY` run is the honest remaining step (see **Status**).
+The one thing offline can't show is a live model's *judgement* — so we ran it: a
+real `DASHSCOPE_API_KEY` end-to-end run is committed at
+[`docs/proof/live_run.db`](docs/proof/) (324 entries, `qwen3.7-plus` roles +
+`qwen3.7-max` mediator, all invariants PASS) and **replays byte-for-byte**, both
+locally and on the [live Alibaba Function Compute deploy](#-deployed-on-alibaba-cloud).
 
 ## 📋 Status — honest
 
 | Area | State |
 |---|---|
-| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (329 tests) |
+| Negotiation protocol, ledger, deadlock, mediator, signing, chain-log | **Done & tested** (330 tests) |
 | `storm_dfw` fixture + generator + committed `fixtures/storm_dfw_seed7.json` | **Done**, deadlock guaranteed |
 | Offline society (deterministic **policy** agents) | **Done** — the default; no key, byte-stable |
 | Ablation bench (3×10) + `verify_offline` + readiness check | **Done**, table committed |
-| Live Qwen agents (`qwen3.7-plus` / `qwen3.7-max` / `text-embedding-v4`) | **Wired + wire-tested** behind `DASHSCOPE_API_KEY` (`--live`): 19 deterministic tests exercise the DashScope structured-output contract, one-retry, thinking flag, per-agent filtering & embeddings against a stub client (zero tokens). The offline policies are the graded path; a real key runs the same, already-verified wire path. |
-| Alibaba Cloud ECS deploy | **Not deployed** — setup documented in `infra/ecs/setup.md` |
+| Live Qwen agents (`qwen3.7-plus` / `qwen3.7-max` / `text-embedding-v4`) | **Done — real end-to-end live run committed.** `docs/proof/live_run.db` is a fully live society run (`qwen3.7-plus` roles + `qwen3.7-max` mediator, 324 entries, all invariants PASS, replays byte-for-byte). Plus 19 deterministic wire-path tests behind `DASHSCOPE_API_KEY` (`--live`). |
+| Alibaba Cloud deployment | **Deployed** — live on **Alibaba Cloud Function Compute** (managed `python3.10`): [`/verify`](https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify) re-checks the live Qwen run in the cloud, plus `/run` + `/health`. Config in `infra/fc/`; an ECS runbook alternative is in `infra/ecs/setup.md`. |
 | Ops-board UI | **Deferred** — a static `runs/<id>/report.html` transcript is a nice-to-have, not shipped |
 
 **Limitations.** Tarmac is a **simulator**: synthetic reservation data, one curated

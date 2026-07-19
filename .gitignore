@@ -14,6 +14,10 @@ build/
 # run artifacts (fixtures/ run DB is committed on purpose; runs/ is scratch)
 runs/
 
+# Function Compute deploy scaffolding (vendored deps + Serverless Devs state)
+/python/
+.s/
+
 # OS noise
 .DS_Store
 

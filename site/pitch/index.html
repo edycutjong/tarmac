@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Tarmac" />
 <meta property="og:url" content="https://tarmac.edycu.dev/pitch/" />
 <meta property="og:title" content="Tarmac — Pitch Deck" />
-<meta property="og:description" content="Five agents fight over nine seats so the right people fly. Single planner strands 17 protected passengers; the society strands 3. 327 tests, 99% coverage." />
+<meta property="og:description" content="Five agents fight over nine seats so the right people fly. Single planner strands 17 protected passengers; the society strands 3. 330 tests, 100% coverage." />
 <meta property="og:image" content="https://tarmac.edycu.dev/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -444,7 +444,7 @@ body.debug-contrast td,body.debug-contrast th{outline:1px solid rgba(248,113,113
   <p class="tag"><span class="n">09 //</span> Shipped — solo, in one day</p>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:10px">
     <div style="background:var(--color-bg-elev);border:1px solid var(--border);border-radius:18px;padding:40px;text-align:left">
-      <p class="mono green" style="font-size:74px;font-weight:700;line-height:1">327</p>
+      <p class="mono green" style="font-size:74px;font-weight:700;line-height:1">330</p>
       <p style="font-size:20px;color:var(--color-dim);margin-top:14px">tests, all green in ~5s — ledger locks, commit/reveal, deadlock graphs, ruling flow, invariants I1–I5</p>
     </div>
     <div style="background:var(--color-bg-elev);border:1px solid var(--border);border-radius:18px;padding:40px">
@@ -464,14 +464,15 @@ body.debug-contrast td,body.debug-contrast th{outline:1px solid rgba(248,113,113
         <li><span class="green">▸</span> Zero-key judge path: <span class="mono" style="font-size:17px">verify_offline.py</span> → exit 0, sockets disabled</li>
         <li><span class="green">▸</span> 7-layer CI: ruff · mypy · pytest · CodeQL · pip-audit · TruffleHog · wheel smoke</li>
         <li><span class="green">▸</span> Domain proof: <span class="mono" style="font-size:17px">examples/meeting_rooms.py</span> — same core, 20 lines</li>
+        <li><span class="green">▸</span> Live on <b>Alibaba Function Compute</b> — <span class="mono" style="font-size:15px">tarmac-xceukceokg.ap-southeast-1.fcapp.run</span> · <span class="mono" style="font-size:16px">/verify</span> re-checks the live Qwen run in the cloud</li>
       </ul>
     </div>
     <div style="background:rgba(251,191,36,.05);border:1px dashed rgba(251,191,36,.4);border-radius:18px;padding:36px 40px">
       <p class="mono" style="font-size:14px;color:var(--color-primary);letter-spacing:.14em;margin-bottom:20px">HONEST LIMITS</p>
-      <p style="font-size:19.5px;line-height:1.6;color:var(--color-dim)">A simulator — synthetic data, one curated storm + seeded generator. Offline default = deterministic policy agents; real Qwen agents behind <span class="mono" style="font-size:16px">--live</span>. ECS deploy documented, not claimed.</p>
+      <p style="font-size:19.5px;line-height:1.6;color:var(--color-dim)">A simulator — synthetic data, one curated storm + seeded generator. Offline default = deterministic policy agents; real Qwen agents behind <span class="mono" style="font-size:16px">--live</span> (a real live run is committed). Deployed on Alibaba Function Compute.</p>
     </div>
   </div>
-  <aside class="speaker-notes">No invented users — this is what actually shipped in a one-day solo build: 327 green tests, 99 percent coverage, a committed benchmark, and a judge path that needs no key. The honest-limits card is deliberate: judges reward knowing exactly what you didn't build.</aside>
+  <aside class="speaker-notes">No invented users — this is what actually shipped in a one-day solo build: 330 green tests, 100 percent coverage, a committed benchmark, and a judge path that needs no key. The honest-limits card is deliberate: judges reward knowing exactly what you didn't build.</aside>
 </section>
 
 <!-- ═══ SLIDE 10 · THE ASK ═══ -->

@@ -396,12 +396,17 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
         Pitch Deck
       </a>
+      <a class="btn btn-ghost" href="https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify" rel="noopener" title="Verifies the live Qwen run byte-for-byte, in the cloud">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        Live on Alibaba Cloud
+      </a>
     </div>
     <p class="hero-strip mono">
       <span>SCENARIO <b>storm_dfw</b></span>
       <span>PAX <b>180</b> / SEATS <b>139</b></span>
       <span>OFFLINE <b>zero keys</b></span>
       <span>REPLAY <b>byte-identical</b></span>
+      <span>DEPLOYED <b>Alibaba FC</b></span>
     </p>
   </div>
 </section>
@@ -560,7 +565,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
       <article class="hcard rv">
         <p class="htag">A simulator, stated plainly</p>
         <h3>Rehearsal, not a live GDS</h3>
-        <p>Synthetic reservation data, one curated storm plus a seeded generator. Decision-support and rehearsal — not a live booking integration. ECS deployment is documented in <code>infra/ecs/</code>, not claimed as deployed.</p>
+        <p>Synthetic reservation data, one curated storm plus a seeded generator. Decision-support and rehearsal — not a live booking integration. It <em>is</em> deployed live on <a href="https://tarmac-xceukceokg.ap-southeast-1.fcapp.run/verify" rel="noopener">Alibaba Cloud Function Compute</a> (managed <code>python3.10</code>), where <code>/verify</code> re-checks the committed live-Qwen run byte-for-byte.</p>
       </article>
     </div>
   </div>
