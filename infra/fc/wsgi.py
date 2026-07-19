@@ -17,7 +17,7 @@ import sys
 
 # --- 3.10 compat shim: must run before any tarmac_society import -------------
 if not hasattr(enum, "StrEnum"):
-    class StrEnum(str, enum.Enum):  # noqa: D401 - drop-in for 3.11 enum.StrEnum
+    class StrEnum(str, enum.Enum):  # noqa: D401,UP042 - 3.11 enum.StrEnum polyfill for the 3.10 runtime
         def __str__(self) -> str:
             return str(self.value)
     enum.StrEnum = StrEnum  # type: ignore[attr-defined]
